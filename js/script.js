@@ -1,33 +1,42 @@
-const canvas = document.querySelector("canvas") //cria uma variavel para a tag canvas
-const ctx = canvas.getContext("2d") //retorna algo que pode ser visto como uma lousa em branco que a gente usa para desenhar coisas na tela
+const canvas = document.querySelector("canvas") 
+
+const ctx = canvas.getContext("2d")
 
 const score = document.querySelector(".score--value")
 const finalScore = document.querySelector(".final-score > span")
 const menu = document.querySelector(".menu-screen")
 const buttonPlay = document.querySelector(".btn-play")
+const controls = document.querySelector(".controls")
+const buttonUp = document.querySelector(".btn-up")
+const buttonDown = document.querySelector(".btn-down")
+const buttonLeft = document.querySelector(".btn-left")
+const buttonRight = document.querySelector(".btn-right")
 
-const audio = new Audio('../assets/audio.mp3')
+const audioEat = new Audio('../assets/audio.mp3')
+const audioGame = new Audio('../assets/best-game-console.mp3')
+const audioGameOver = new Audio('../assets/negative-beeps.mp3')
 
 const size = 30
 
 const initialPosition = { x: 270, y:240}
 
 let snake = [initialPosition]
+let audio = false
 
-const incrementScore = () => { // soma o score
+const incrementScore = () => {
     score.innerText = +score.innerText + 10
 }
 
-const randomNumber = (min, max) => { //gera um número aleatório com um minimo e maximo
+const randomNumber = (min, max) => { 
     return Math.round(Math.random() * (max - min)+ min)
 }
 
-const randomPosition = () => { //gera uma posição aleatória dentro dos limites
+const randomPosition = () => { 
     const number = randomNumber(0, canvas.width - size)
     return Math.round(number / 30) *30
 }
 
-const randomColor = () => { //gera uma cor aleatória
+const randomColor = () => { 
     const red = randomNumber(0, 255)
     const green = randomNumber(0, 255)
     const blue = randomNumber(0, 255)
@@ -35,7 +44,7 @@ const randomColor = () => { //gera uma cor aleatória
     return `rgb(${red}, ${green}, ${blue})`
 }
 
-const food = { //gera em uma posição e cor aleatória
+const food = { 
     x: randomPosition(),
     y: randomPosition(),
     color: randomColor()
@@ -43,37 +52,36 @@ const food = { //gera em uma posição e cor aleatória
 
 let direction, loopId
 
-const drawFood = () => { //desenha a comida
+const drawFood = () => { 
 
-    const { x, y, color } = food //desestruturação de objetos
+    const { x, y, color } = food 
 
-    ctx.shadowColor = color //define a cor da sombra como a mesma cor do alimento
-    ctx.shadowBlur = 6 //aplica um desfoque à sombra
-    ctx.fillStyle = food.color //define a cor do alimento
-    ctx.fillRect(food.x, food.y, size, size) //desenha a comida
-    ctx.shadowBlur = 0 //Remove o desfoque de sombra depois de desenhar
+    ctx.shadowColor = color 
+    ctx.shadowBlur = 6 
+    ctx.fillStyle = food.color 
+    ctx.fillRect(food.x, food.y, size, size) 
+    ctx.shadowBlur = 0 
 }
 
-const drawSnake = () => { //desenha a cobra
-    ctx.fillStyle = "#ddd" //cor do corpo da cobra
+const drawSnake = () => { 
+    ctx.fillStyle = "#ddd" 
     
-    snake.forEach((position, index) => { //itera sobre cada parte do corpo da cobra (um array de posições x e y)
+    snake.forEach((position, index) => { 
 
-        if (index == snake.length - 1) { //verifica se é o último elemento do array, ou seja, a cabeça da cobra
-            ctx.fillStyle = "white" //cor da cabeça da cobra
+        if (index == snake.length - 1) { 
+            ctx.fillStyle = "white" 
         }
-        ctx.fillRect(position.x, position.y, size, size) //desenha um quadrado em determinadas coordenadas x e y, e define o tamanho
+        ctx.fillRect(position.x, position.y, size, size) 
     })
 }
 
-const moveSnake = () => { //implementa o movimento da cobra
-    if (!direction) return // se ainda não há direção definida, não faz nada
+const moveSnake = () => { 
+    if (!direction) return 
 
-    const head = snake[snake.length -1] //pega a cabeça atual da cobra
+    const head = snake[snake.length -1] 
     
-    snake.shift() //remove o primeiro segmento do corpo (o "rabo")
+    snake.shift() 
 
-    // move a cabeça para a nova direção, adicionando uma nova posição no final
     if (direction == "right") {
         snake.push({ x: head.x + size, y: head.y})
     }
@@ -89,21 +97,27 @@ const moveSnake = () => { //implementa o movimento da cobra
     if (direction == "up") {
         snake.push({ x: head.x, y: head.y - size})
     }
+
+    if (audioGame.paused) {
+        audioGame.volume = 0.4
+        audioGame.currentTime = 0
+        audioGame.play()
+    }
 }
 
-const drawGrid = () => { //desenha uma grade
-    ctx.lineWidth = 1 //define a espessura das linhas
-    ctx.strokeStyle = "#191919" //define a cor das linhas
+const drawGrid = () => { 
+    ctx.lineWidth = 1 
+    ctx.strokeStyle = "#191919" 
 
     for (let i = 30; i < canvas.width; i += 30) {
-        ctx.beginPath() //indica que uma linha será traçada
-        ctx.lineTo(i, 0) //linha vertical de cima
-        ctx.lineTo(i, 600) //até embaixo
+        ctx.beginPath() 
+        ctx.lineTo(i, 0) 
+        ctx.lineTo(i, 600) 
         ctx.stroke()
 
         ctx.beginPath()
-        ctx.lineTo(0, i) //linha horizontal da esquerda
-        ctx.lineTo(600, i)// até a direita
+        ctx.lineTo(0, i) 
+        ctx.lineTo(600, i)
         ctx.stroke()
     }
 
@@ -116,7 +130,7 @@ const checkEat = () => {
     if (head.x == food.x && head.y == food.y) {
         incrementScore()
         snake.push(head)
-        audio.play()
+        audioEat.play()
 
         let x = randomPosition()
         let y = randomPosition()
@@ -128,7 +142,7 @@ const checkEat = () => {
 
         food.x = x
         food.y = y
-        color = randomColor
+        food.color = randomColor()
     }
 }
 
@@ -148,12 +162,24 @@ const checkCollision = () => {
     }
 }
 
+const playOnce = () => {
+    if (!audio) {
+        audioGameOver.play()
+        audio = true
+    }
+    
+}
+
 const gameOver = () => {
     direction = undefined
 
     menu.style.display = "flex"
     finalScore.innerText = score.innerText
     canvas.style.filter = "blur(2px)"
+    audioGame.pause()
+    playOnce()
+
+    clearTimeout(loopId)
 }
 
 const gameLoop = () => {
@@ -171,6 +197,17 @@ const gameLoop = () => {
         gameLoop()
     } , 300)
 }
+
+function isMobileOrTablet() {
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent)
+}
+
+if (isMobileOrTablet()) {
+    controls.style.display = "flex";  // mostra os controles
+} else {
+    controls.style.display = "none";  // esconde os controles
+}
+
 
 gameLoop()
 
@@ -198,4 +235,31 @@ buttonPlay.addEventListener("click", () => {
     canvas.style.filter = "none"
 
     snake = [initialPosition]
+    audio = false
+    gameLoop()
+})
+
+buttonUp.addEventListener("click", () => {
+    if (direction !== "down") {
+        direction = "up"
+    }
+})
+
+buttonDown.addEventListener("click", () => {
+    if (direction !== "up") {
+        direction = "down"
+    }
+})
+
+buttonLeft.addEventListener("click", () => {
+    if (direction !== "right") {
+        direction = "left"
+    }
+})
+
+
+buttonRight.addEventListener("click", () => {
+    if (direction !== "left") {
+        direction = "right"
+    }
 })
