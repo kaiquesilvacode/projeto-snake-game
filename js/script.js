@@ -12,9 +12,9 @@ const buttonDown = document.querySelector(".btn-down")
 const buttonLeft = document.querySelector(".btn-left")
 const buttonRight = document.querySelector(".btn-right")
 
-const audioEat = new Audio('../assets/audio.mp3')
-const audioGame = new Audio('../assets/best-game-console.mp3')
-const audioGameOver = new Audio('../assets/negative-beeps.mp3')
+const audioEat = new Audio('../projeto-snake-game/assets/audio.mp3')
+const audioGame = new Audio('../projeto-snake-game/assets/best-game-console.mp3')
+const audioGameOver = new Audio('../projeto-snake-game/assets/negative-beeps.mp3')
 
 const size = 30
 
